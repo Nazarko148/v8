@@ -60,7 +60,8 @@ jobs:
       - name: Sync repository dependencies and Android toolchains
         working-directory: ${{ env.GCLIENT_ROOT }}
         run: |
-          test "$PWD/v8" = "$V8_CHECKOUT"
+          test "$PWD" = "$(dirname "$V8_CHECKOUT")"
+          test -d "$V8_CHECKOUT/.git"
           gclient sync --no-history
 
       - name: Export Android tool locations

@@ -39,7 +39,7 @@
 .github/*
 !.github/mistaken-pull-closer.yml
 !.github/workflows/
-!.github/workflows/copilot-setup-steps.yml
+!.github/workflows/*
 .idea
 .jetskicli
 .jslint-cache
