@@ -57,7 +57,7 @@ jobs:
           """ % os.environ["GCLIENT_REPO_URL"], encoding="utf-8")'
 
       - name: Sync repository dependencies and Android toolchains
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/..
         run: gclient sync
 
       - name: Export Android tool locations
