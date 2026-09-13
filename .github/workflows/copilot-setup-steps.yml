@@ -39,7 +39,6 @@ jobs:
         run: |
           git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git "$DEPOT_TOOLS_DIR"
           echo "$DEPOT_TOOLS_DIR" >> "$GITHUB_PATH"
-          echo "VPYTHON_BYPASS=manually managed python not supported by chrome operations" >> "$GITHUB_ENV"
 
       - name: Create gclient workspace for Android
         working-directory: ${{ env.GCLIENT_ROOT }}
@@ -63,7 +62,7 @@ jobs:
           test "$PWD" = "$(dirname "$V8_CHECKOUT")"
           test -d "$V8_CHECKOUT/.git"
           command -v gclient
-          gclient sync --no-history
+          gclient sync --no-history --deps=android,unix
 
       - name: Export Android tool locations
         run: |
@@ -73,6 +72,15 @@ jobs:
           echo "ANDROID_HOME=$V8_CHECKOUT/third_party/android_sdk/public" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_HOME=$V8_CHECKOUT/third_party/android_ndk" >> "$GITHUB_ENV"
           echo "$V8_CHECKOUT/third_party/android_sdk/public/platform-tools" >> "$GITHUB_PATH"
+
+      - name: Verify exported Android environment
+        run: |
+          test "$ANDROID_SDK_ROOT" = "$V8_CHECKOUT/third_party/android_sdk/public"
+          test "$ANDROID_HOME" = "$V8_CHECKOUT/third_party/android_sdk/public"
+          test "$ANDROID_NDK_HOME" = "$V8_CHECKOUT/third_party/android_ndk"
+          test -d "$ANDROID_SDK_ROOT"
+          test -d "$ANDROID_NDK_HOME"
+          command -v adb
 
       - name: Verify Android GN configuration
         run: |
