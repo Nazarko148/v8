@@ -15,6 +15,9 @@ jobs:
     timeout-minutes: 59
     permissions:
       contents: read
+    env:
+      GCLIENT_ROOT: ${{ github.workspace }}/..
+      V8_CHECKOUT: ${{ github.workspace }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -39,33 +42,35 @@ jobs:
           echo "VPYTHON_BYPASS=manually managed python not supported by chrome operations" >> "$GITHUB_ENV"
 
       - name: Create gclient workspace for Android
-        working-directory: ${{ github.workspace }}/..
-        env:
-          GCLIENT_REPO_URL: https://github.com/${{ github.repository }}.git
+        working-directory: ${{ env.GCLIENT_ROOT }}
         run: |
           python3 -c 'from pathlib import Path; import os;
           Path(".gclient").write_text("""solutions = [
             {
               "name": "v8",
-              "url": "%s",
+              "url": "https://chromium.googlesource.com/v8/v8.git",
               "managed": False,
               "custom_deps": {},
               "custom_vars": {},
             },
           ]
           target_os = ["android", "unix"]
-          """ % os.environ["GCLIENT_REPO_URL"], encoding="utf-8")'
+          """, encoding="utf-8")'
 
       - name: Sync repository dependencies and Android toolchains
-        working-directory: ${{ github.workspace }}/..
-        run: gclient sync
+        working-directory: ${{ env.GCLIENT_ROOT }}
+        run: |
+          test "$PWD/v8" = "$V8_CHECKOUT"
+          gclient sync
 
       - name: Export Android tool locations
         run: |
-          echo "ANDROID_SDK_ROOT=$GITHUB_WORKSPACE/third_party/android_sdk/public" >> "$GITHUB_ENV"
-          echo "ANDROID_HOME=$GITHUB_WORKSPACE/third_party/android_sdk/public" >> "$GITHUB_ENV"
-          echo "ANDROID_NDK_HOME=$GITHUB_WORKSPACE/third_party/android_ndk" >> "$GITHUB_ENV"
-          echo "$GITHUB_WORKSPACE/third_party/android_sdk/public/platform-tools" >> "$GITHUB_PATH"
+          test -d "$V8_CHECKOUT/third_party/android_sdk/public"
+          test -d "$V8_CHECKOUT/third_party/android_ndk"
+          echo "ANDROID_SDK_ROOT=$V8_CHECKOUT/third_party/android_sdk/public" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$V8_CHECKOUT/third_party/android_sdk/public" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$V8_CHECKOUT/third_party/android_ndk" >> "$GITHUB_ENV"
+          echo "$V8_CHECKOUT/third_party/android_sdk/public/platform-tools" >> "$GITHUB_PATH"
 
       - name: Verify Android GN configuration
         run: |
