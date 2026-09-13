@@ -35,7 +35,10 @@
 .gclient_entries
 .gdb_history
 .gemini
-.github
+!.github/
+.github/*
+!.github/workflows/
+!.github/workflows/*
 .idea
 .jetskicli
 .jslint-cache
