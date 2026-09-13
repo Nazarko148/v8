@@ -4,10 +4,14 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - DEPS
       - .github/workflows/copilot-setup-steps.yml
+      - tools/dev/gm.py
   pull_request:
     paths:
+      - DEPS
       - .github/workflows/copilot-setup-steps.yml
+      - tools/dev/gm.py
 
 jobs:
   copilot-setup-steps:
