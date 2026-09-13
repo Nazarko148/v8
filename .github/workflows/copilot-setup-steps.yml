@@ -17,6 +17,7 @@ jobs:
       contents: read
     env:
       GCLIENT_ROOT: ${{ github.workspace }}/..
+      GCLIENT_SOLUTION_URL: file://${{ github.workspace }}
       V8_CHECKOUT: ${{ github.workspace }}
     steps:
       - name: Checkout code
@@ -43,11 +44,11 @@ jobs:
       - name: Create gclient workspace for Android
         working-directory: ${{ env.GCLIENT_ROOT }}
         run: |
-          cat > .gclient <<'EOF'
+          cat > .gclient <<EOF
           solutions = [
             {
               "name": "v8",
-              "url": "https://chromium.googlesource.com/v8/v8.git",
+              "url": "${GCLIENT_SOLUTION_URL}",
               "managed": False,
               "custom_deps": {},
               "custom_vars": {},
