@@ -1,0 +1,73 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 59
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y adb git ninja-build unzip
+
+      - name: Install depot_tools
+        env:
+          DEPOT_TOOLS_DIR: ${{ runner.temp }}/depot_tools
+        run: |
+          git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git "$DEPOT_TOOLS_DIR"
+          echo "$DEPOT_TOOLS_DIR" >> "$GITHUB_PATH"
+          echo "VPYTHON_BYPASS=manually managed python not supported by chrome operations" >> "$GITHUB_ENV"
+
+      - name: Create gclient workspace for Android
+        working-directory: ${{ github.workspace }}/..
+        env:
+          GCLIENT_REPO_URL: https://github.com/${{ github.repository }}.git
+        run: |
+          python3 -c 'from pathlib import Path; import os;
+          Path(".gclient").write_text("""solutions = [
+            {
+              "name": "v8",
+              "url": "%s",
+              "managed": False,
+              "custom_deps": {},
+              "custom_vars": {},
+            },
+          ]
+          target_os = ["android", "unix"]
+          """ % os.environ["GCLIENT_REPO_URL"], encoding="utf-8")'
+
+      - name: Sync repository dependencies and Android toolchains
+        working-directory: ${{ github.workspace }}
+        run: gclient sync
+
+      - name: Export Android tool locations
+        run: |
+          echo "ANDROID_SDK_ROOT=$GITHUB_WORKSPACE/third_party/android_sdk/public" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$GITHUB_WORKSPACE/third_party/android_sdk/public" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$GITHUB_WORKSPACE/third_party/android_ndk" >> "$GITHUB_ENV"
+          echo "$GITHUB_WORKSPACE/third_party/android_sdk/public/platform-tools" >> "$GITHUB_PATH"
+
+      - name: Verify Android GN configuration
+        run: |
+          python3 tools/dev/v8gen.py android_arm64.release
+          grep 'target_os = "android"' out.gn/android_arm64.release/args.gn

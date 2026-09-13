@@ -35,7 +35,11 @@
 .gclient_entries
 .gdb_history
 .gemini
-.github
+!.github/
+.github/*
+!.github/mistaken-pull-closer.yml
+!.github/workflows/
+!.github/workflows/copilot-setup-steps.yml
 .idea
 .jetskicli
 .jslint-cache
