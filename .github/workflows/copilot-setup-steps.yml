@@ -69,5 +69,5 @@ jobs:
 
       - name: Verify Android GN configuration
         run: |
-          python3 tools/dev/v8gen.py android_arm64.release
-          grep 'target_os = "android"' out.gn/android_arm64.release/args.gn
+          python3 tools/dev/v8gen.py gen android.arm64.release -m client.v8 -b 'V8 Android Arm64 - builder'
+          grep 'target_os = "android"' out.gn/android.arm64.release/args.gn
